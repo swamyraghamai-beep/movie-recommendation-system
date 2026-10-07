@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MovieHub - Recommendations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav>
+        <h2>🎬 MovieHub</h2>
+        <div>
+            <span>Welcome👤{{ username }}</span>
+            <form action="{{ url_for('logout') }}" method="post">
+                <button class="link-button" type="submit">Log out ↩ </button>
+            </form>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="dashboard-hero">
+            <p class="eyebrow">✨ DISCOVER YOUR NEXT FAVORITE</p>
+            <h1>Find a movie for every mood 🍿</h1>
+            <p>📀 Search by title, genre, or story. Choose a movie to find more like it.</p>
+            <label class="visually-hidden" for="movie-search">Search movies</label>
+            <input
+                type="search"
+                id="movie-search"
+                placeholder="🔍︎ Try sci-fi, comedy, or a movie title..."
+                autocomplete="off"
+            >
+        </header>
+
+        <h2 class="section-title">Explore movies</h2>
+        <div id="movies" data-tmdb-posters="{{ 'true' if tmdb_api_enabled else 'false' }}">
+            {% for movie in movies %}
+            <article class="movie-card" data-title="{{ movie['title'] }}">
+                <img class="movie-poster" src="{{ url_for('movie_poster', movie_id=movie['id']) if tmdb_api_enabled else (movie['poster'] or '') }}" data-title="{{ movie['title'] }}" data-genre="{{ movie['genre'] }}" data-movie-id="{{ movie['id'] }}" data-tmdb-poster="{{ 'true' if tmdb_api_enabled else 'false' }}" alt="Poster for {{ movie['title'] }}" loading="lazy">
+                <h3>{{ movie['title'] }}</h3>
+                <p><strong>Genre:</strong> {{ movie['genre'] }}</p>
+                <p>⭐ {{ movie['rating'] }}</p>
+                <p>{{ movie['description'] }}</p>
+                <button type="button" class="recommend-btn" data-movie-id="{{ movie['id'] }}">
+                    🎯 Recommend similar movies
+                </button>
+            </article>
+            {% else %}
+            <p>No movies are available yet.</p>
+            {% endfor %}
+        </div>
+
+        <section id="recommendations" aria-live="polite"></section>
+        <footer class="tmdb-credit">Movie posters and movie data provided by TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</footer>
+    </main>
+
+    {% include "_flash_messages.html" %}
+
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>
