@@ -55,6 +55,12 @@ def create_database():
     cursor.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_movies_tmdb_id ON movies(tmdb_id)"
     )
+    try:
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_ci ON users(LOWER(username))"
+        )
+    except sqlite3.IntegrityError:
+        pass
 
     cursor.execute(
         """
@@ -275,10 +281,11 @@ def import_tmdb_movies(cursor):
 
 def add_user(username, password):
     conn = get_connection()
+    normalized_username = (username or "").strip()
     try:
         conn.execute(
             "INSERT INTO users (username, password) VALUES (?, ?)",
-            (username, password),
+            (normalized_username, password),
         )
         conn.commit()
         return True
@@ -290,9 +297,10 @@ def add_user(username, password):
 
 def find_user(username):
     conn = get_connection()
+    normalized_username = (username or "").strip()
     user = conn.execute(
-        "SELECT * FROM users WHERE username = ?",
-        (username,),
+        "SELECT * FROM users WHERE LOWER(username) = LOWER(?)",
+        (normalized_username,),
     ).fetchone()
     conn.close()
     return dict(user) if user else None

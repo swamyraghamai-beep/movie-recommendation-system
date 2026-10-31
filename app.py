@@ -97,6 +97,11 @@ def register():
             flash("Your password must be at least 8 characters long.", "error")
             return render_template("register.html"), 400
 
+        normalized_username = username.casefold()
+        if find_user(normalized_username) is not None:
+            flash("That username is already registered.", "error")
+            return render_template("register.html"), 409
+
         if not add_user(username, generate_password_hash(password)):
             flash("That username is already registered.", "error")
             return render_template("register.html"), 409
@@ -112,7 +117,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        user = find_user(username)
+        user = find_user(username.casefold())
 
         if user is None or not check_password_hash(user["password"], password):
             flash("Incorrect username or password.", "error")
